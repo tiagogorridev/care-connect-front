@@ -1,8 +1,8 @@
 import { useState } from "react";
-import Button from "../components/Button.jsx";
-import Card from "../components/AuthCard.jsx";
-import InputField from "../components/InputField.jsx";
-import api from "../services/apiService.js";
+import Button from "../../components/Button.jsx";
+import Card from "../../components/AuthCard.jsx";
+import InputField from "../../components/InputField.jsx";
+import api from "../../services/apiService.js";
 
 const SignUp = ({ onSwitchToSignIn }) => {
   const [formData, setFormData] = useState({

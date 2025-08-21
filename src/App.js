@@ -1,8 +1,8 @@
 import { useState } from "react";
-import SignIn from "./pages/SignIn.jsx";
-import SignUp from "./pages/SignUp.jsx";
-import ForgotPassword from "./pages/ForgotPassword.jsx";
-import PatientDashboard from "./pages/PatientDashboard.jsx";
+import SignIn from "./pages/shared/SignIn.jsx";
+import SignUp from "./pages/shared/SignUp.jsx";
+import ForgotPassword from "./pages/shared/ForgotPassword.jsx";
+import PatientDashboard from "./pages/patient/PatientDashboard.jsx";
 
 function App() {
   const [currentPage, setCurrentPage] = useState("signin");

@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Search } from "lucide-react";
-import Button from "../components/Button";
-import DoctorCard from "../components/DoctorCard";
-import InputField from "../components/InputField";
-import { DOCTORS, SPECIALTIES } from "../data/doctorsMockData";
+import Button from "../../components/Button";
+import DoctorCard from "../../components/DoctorCard";
+import InputField from "../../components/InputField";
+import { DOCTORS, SPECIALTIES } from "../../data/doctorsMockData";
 
 const SearchPage = () => {
   const [searchTerm, setSearchTerm] = useState("");

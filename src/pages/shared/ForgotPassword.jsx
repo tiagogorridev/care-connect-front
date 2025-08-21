@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import Button from "../components/Button.jsx";
-import Card from "../components/AuthCard.jsx";
-import InputField from "../components/InputField.jsx";
+import Button from "../../components/Button.jsx";
+import Card from "../../components/AuthCard.jsx";
+import InputField from "../../components/InputField.jsx";
 
 const ForgotPassword = ({ onSwitchToSignIn }) => {
   const [email, setEmail] = useState("");

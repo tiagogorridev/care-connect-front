@@ -1,10 +1,10 @@
 import { useState } from "react";
-import Header from "../components/ui/Header.jsx";
-import Navigation from "../components/ui/Navigation.jsx";
+import Header from "../../components/ui/Header.jsx";
+import Navigation from "../../components/ui/Navigation.jsx";
 import Home from "./Home.jsx";
-import Appointments from "./Appointment.jsx";
+import Appointments from "./Appointments.jsx";
 import SearchPage from "./SearchPage.jsx";
-import { mockData } from "../data/index.js";
+import { mockData } from "../../data/index.js";
 
 const PatientDashboard = ({ userName }) => {
   const [activeTab, setActiveTab] = useState("home");

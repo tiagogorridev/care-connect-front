@@ -1,4 +1,4 @@
-import api from "./apiService";
+import api from "./apiService.js";
 
 export const authService = {
   signin: (email, senha) => {

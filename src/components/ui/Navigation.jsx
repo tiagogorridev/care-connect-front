@@ -1,5 +1,5 @@
 import { Home, Calendar, Search } from "lucide-react";
-import Button from "../Button";
+import Button from "../Button.jsx";
 
 const Navigation = ({ activeTab, setActiveTab }) => {
   const navItems = [
@@ -15,22 +15,20 @@ const Navigation = ({ activeTab, setActiveTab }) => {
         const isActive = activeTab === item.id;
 
         return (
-          <div className="">
-            <Button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              variant={isActive ? "secondary" : "ghost"}
-              size="sm"
-              className={`flex ${
-                isActive
-                  ? "!bg-green-100 !text-green-700 !border-green-200 shadow-sm"
-                  : "!text-gray-600 hover:!text-gray-800 hover:!bg-gray-50 hover:!no-underline"
-              }`}
-            >
-              <Icon size={20} />
-              <span>{item.label}</span>
-            </Button>
-          </div>
+          <Button
+            key={item.id}
+            onClick={() => setActiveTab(item.id)}
+            variant={isActive ? "secondary" : "ghost"}
+            size="sm"
+            className={`flex ${
+              isActive
+                ? "!bg-green-100 !text-green-700 !border-green-200 shadow-sm"
+                : "!text-gray-600 hover:!text-gray-800 hover:!bg-gray-50 hover:!no-underline"
+            }`}
+          >
+            <Icon size={20} />
+            <span>{item.label}</span>
+          </Button>
         );
       })}
     </nav>

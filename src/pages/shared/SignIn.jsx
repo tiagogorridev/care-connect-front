@@ -1,14 +1,18 @@
 import { useState } from "react";
-import Button from "../components/Button.jsx";
-import Card from "../components/AuthCard.jsx";
-import InputField from "../components/InputField.jsx";
+import Button from "../../components/Button.jsx";
+import Card from "../../components/AuthCard.jsx";
+import InputField from "../../components/InputField.jsx";
+import { authService } from "../../services/authService.js";
 
 const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
   const [formData, setFormData] = useState({
     email: "",
-    password: "",
+    senha: "",
     rememberMe: false,
   });
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -16,29 +20,59 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
+
+    if (error) setError("");
   };
 
-  const formatUserName = (email) => {
-    const name = email.split("@")[0];
-    return name.charAt(0).toUpperCase() + name.slice(1);
-  };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.email || !formData.password) {
-      alert("Por favor, preencha todos os campos");
+    if (!formData.email || !formData.senha) {
+      setError("Por favor, preencha todos os campos");
       return;
     }
 
-    onSignIn(formatUserName(formData.email), formData);
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await authService.signin(formData.email, formData.senha);
+
+      console.log("Login realizado:", response.data);
+
+      const { user } = response.data;
+
+      localStorage.setItem("user", JSON.stringify(user));
+
+      if (onSignIn) {
+        onSignIn(user.nome, {
+          ...user,
+          loginType: "backend",
+          rememberMe: formData.rememberMe,
+        });
+      }
+    } catch (error) {
+      console.error("Erro no login:", error);
+
+      if (error.response?.status === 401) {
+        setError("Email ou senha incorretos");
+      } else if (error.response?.status === 500) {
+        setError("Erro no servidor. Tente novamente");
+      } else {
+        setError(error.response?.data?.error || "Erro ao fazer login");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleGoogleLogin = () => {
-    onSignIn("Usuário Google", {
-      email: "usuario@gmail.com",
-      loginType: "google",
-    });
+    if (onSignIn) {
+      onSignIn("Usuário Google", {
+        email: "usuario@gmail.com",
+        loginType: "google",
+      });
+    }
   };
 
   return (
@@ -56,8 +90,9 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
 
         <InputField
           label="Senha"
-          name="password"
-          value={formData.password}
+          type="password"
+          name="senha"
+          value={formData.senha}
           onChange={handleChange}
           placeholder="Sua senha"
           required
@@ -80,8 +115,14 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
           </Button>
         </div>
 
-        <Button type="submit" variant="primary" size="full">
-          Entrar
+        {error && (
+          <div className="text-red-600 text-sm bg-red-50 p-3 rounded-md">
+            {error}
+          </div>
+        )}
+
+        <Button type="submit" variant="primary" size="full" disabled={loading}>
+          {loading ? "Entrando..." : "Entrar"}
         </Button>
       </form>
 
@@ -96,6 +137,7 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
         size="full"
         className="flex items-center justify-center mt-6"
         onClick={handleGoogleLogin}
+        disabled={loading}
       >
         <span className="mr-3 text-lg">G</span>
         Continuar com Google

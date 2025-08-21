@@ -1,23 +1,36 @@
 import { useState } from "react";
 import { Plus, Filter, Calendar, Clock, Search } from "lucide-react";
-import AppointmentCard from "../components/AppointmentCard";
-import Button from "../components/Button";
-import InputField from "../components/InputField";
-import AppointmentStatsCard from "../components/AppointmentStatsCard";
-import { mockData } from "../data/index.js";
+import AppointmentCard from "../../components/AppointmentCard.jsx";
+import Button from "../../components/Button.jsx";
+import InputField from "../../components/InputField.jsx";
+import AppointmentStatsCard from "../../components/AppointmentStatsCard.jsx";
+import { mockData } from "../../data/index.js";
 
-const AppointmentsPage = () => {
-  const { upcomingAppointments, recentAppointments } = mockData;
+const Appointments = () => {
+  // Safely destructure with fallbacks
+  const { upcomingAppointments = [], recentAppointments = [] } = mockData || {};
   const [activeFilter, setActiveFilter] = useState("todas");
+
+  // Os dados já têm IDs válidos, então vamos usar filtros mais simples
+  const validUpcomingAppointments = upcomingAppointments.filter((app) => app);
+  const validRecentAppointments = recentAppointments.filter((app) => app);
 
   const filters = [
     {
       id: "todas",
       label: "Todas",
-      count: upcomingAppointments.length + recentAppointments.length,
+      count: validUpcomingAppointments.length + validRecentAppointments.length,
     },
-    { id: "proximas", label: "Próximas", count: upcomingAppointments.length },
-    { id: "passadas", label: "Passadas", count: recentAppointments.length },
+    {
+      id: "proximas",
+      label: "Próximas",
+      count: validUpcomingAppointments.length,
+    },
+    {
+      id: "passadas",
+      label: "Passadas",
+      count: validRecentAppointments.length,
+    },
   ];
 
   const statsData = [
@@ -25,50 +38,59 @@ const AppointmentsPage = () => {
       icon: Calendar,
       iconColor: "text-green-600",
       bgColor: "bg-green-100",
-      value: upcomingAppointments.length,
+      value: validUpcomingAppointments.length,
       label: "Próximas Consultas",
     },
     {
       icon: Clock,
       iconColor: "text-blue-600",
       bgColor: "bg-blue-100",
-      value: recentAppointments.length,
+      value: validRecentAppointments.length,
       label: "Consultas Realizadas",
     },
     {
       icon: Plus,
       iconColor: "text-purple-600",
       bgColor: "bg-purple-100",
-      value: upcomingAppointments.length + recentAppointments.length,
+      value: validUpcomingAppointments.length + validRecentAppointments.length,
       label: "Total de Consultas",
     },
   ];
 
   const getAppointments = () => {
-    const upcoming = upcomingAppointments.map((app) => (
-      <AppointmentCard key={app.id} appointment={app} isUpcoming />
+    const upcoming = validUpcomingAppointments.map((app) => (
+      <AppointmentCard key={app.id} appointment={app} isUpcoming={true} />
     ));
-    const recent = recentAppointments.map((app) => (
+
+    const recent = validRecentAppointments.map((app) => (
       <AppointmentCard key={app.id} appointment={app} isUpcoming={false} />
     ));
 
-    return activeFilter === "proximas"
-      ? upcoming
-      : activeFilter === "passadas"
-      ? recent
-      : [...upcoming, ...recent];
+    switch (activeFilter) {
+      case "proximas":
+        return upcoming;
+      case "passadas":
+        return recent;
+      default:
+        return [...upcoming, ...recent];
+    }
   };
 
-  const getTitle = () =>
-    activeFilter === "proximas"
-      ? "Próximas Consultas"
-      : activeFilter === "passadas"
-      ? "Consultas Passadas"
-      : "Todas as Consultas";
+  const getTitle = () => {
+    switch (activeFilter) {
+      case "proximas":
+        return "Próximas Consultas";
+      case "passadas":
+        return "Consultas Passadas";
+      default:
+        return "Todas as Consultas";
+    }
+  };
 
-  const isEmpty =
-    (activeFilter === "proximas" && !upcomingAppointments.length) ||
-    (activeFilter === "passadas" && !recentAppointments.length);
+  const isEmpty = () => {
+    const appointments = getAppointments();
+    return appointments.length === 0;
+  };
 
   return (
     <div className="space-y-6">
@@ -79,7 +101,7 @@ const AppointmentsPage = () => {
             Gerencie suas consultas médicas e acompanhe seu histórico
           </p>
         </div>
-        <Button variant="primary" size="md" className={`flex`}>
+        <Button variant="primary" size="md" className="flex items-center gap-2">
           <Plus size={20} />
           <span>Agendar Consulta</span>
         </Button>
@@ -121,17 +143,18 @@ const AppointmentsPage = () => {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {statsData.map((stat, index) => (
-          <AppointmentStatsCard key={index} {...stat} />
+          <AppointmentStatsCard key={`stat-${index}`} {...stat} />
         ))}
       </div>
 
       <div className="space-y-4">
         <h2 className="text-xl font-semibold text-gray-900">{getTitle()}</h2>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {getAppointments()}
-        </div>
 
-        {isEmpty && (
+        {!isEmpty() ? (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {getAppointments()}
+          </div>
+        ) : (
           <div className="text-center py-12">
             <Calendar className="mx-auto text-gray-300 mb-4" size={64} />
             <h3 className="text-lg font-medium text-gray-900 mb-2">
@@ -140,7 +163,9 @@ const AppointmentsPage = () => {
             <p className="text-gray-600 mb-6">
               {activeFilter === "proximas"
                 ? "Você não tem consultas agendadas no momento."
-                : "Você ainda não realizou nenhuma consulta."}
+                : activeFilter === "passadas"
+                ? "Você ainda não realizou nenhuma consulta."
+                : "Você não tem nenhuma consulta registrada."}
             </p>
             <Button variant="primary" size="md">
               Agendar Nova Consulta
@@ -152,4 +177,4 @@ const AppointmentsPage = () => {
   );
 };
 
-export default AppointmentsPage;
+export default Appointments;

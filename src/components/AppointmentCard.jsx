@@ -1,6 +1,10 @@
 import { APPOINTMENT_STATUS } from "../data/index.js";
 
 const AppointmentCard = ({ appointment, isUpcoming = true }) => {
+  if (!appointment) {
+    return null;
+  }
+
   const getStatusColor = (status) => {
     switch (status) {
       case APPOINTMENT_STATUS.CONFIRMED:
@@ -21,9 +25,11 @@ const AppointmentCard = ({ appointment, isUpcoming = true }) => {
       <div className="flex justify-between items-start mb-4">
         <div>
           <h4 className="font-bold text-lg text-gray-800">
-            {appointment.doctor}
+            {appointment.doctor || "Médico não informado"}
           </h4>
-          <p className="text-gray-600">{appointment.specialty}</p>
+          <p className="text-gray-600">
+            {appointment.specialty || "Especialidade não informada"}
+          </p>
           {appointment.clinic && (
             <p className="text-sm text-gray-500">{appointment.clinic}</p>
           )}
@@ -41,8 +47,8 @@ const AppointmentCard = ({ appointment, isUpcoming = true }) => {
 
       <div className="flex items-center justify-between text-gray-600">
         <div className="flex items-center space-x-4">
-          <span>{appointment.date}</span>
-          <span>{appointment.time}</span>
+          <span>{appointment.date || "Data não informada"}</span>
+          <span>{appointment.time || "Horário não informado"}</span>
         </div>
 
         {appointment.rating && (
