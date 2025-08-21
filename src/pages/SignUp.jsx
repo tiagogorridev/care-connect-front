@@ -2,35 +2,66 @@ import { useState } from "react";
 import Button from "../components/Button.jsx";
 import Card from "../components/AuthCard.jsx";
 import InputField from "../components/InputField.jsx";
+import api from "../services/apiService.js";
 
 const SignUp = ({ onSwitchToSignIn }) => {
   const [formData, setFormData] = useState({
-    name: "",
+    nome: "",
     email: "",
-    password: "",
+    senha: "",
     confirmPassword: "",
+    telefone: "",
+    cpf: "",
+    tipo: "PACIENTE",
   });
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     setFormData((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
     }));
+
+    if (error) setError("");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (formData.password !== formData.confirmPassword) {
-      alert("As senhas não coincidem");
+    if (formData.senha !== formData.confirmPassword) {
+      setError("As senhas não coincidem");
       return;
     }
 
-    console.log("Dados do cadastro:", formData);
-  };
+    setLoading(true);
+    setError("");
 
-  const handleGoogleSignup = () => {
-    console.log("Cadastro com Google");
+    try {
+      const { confirmPassword, ...userData } = formData;
+      const response = await api.post("/users/signup", userData);
+
+      console.log("Usuário criado:", response.data);
+      alert("Conta criada com sucesso!");
+
+      setFormData({
+        nome: "",
+        email: "",
+        senha: "",
+        confirmPassword: "",
+        telefone: "",
+        cpf: "",
+        tipo: "PACIENTE",
+      });
+
+      onSwitchToSignIn();
+    } catch (error) {
+      console.error("Erro no cadastro:", error);
+      setError(error.response?.data?.error || "Erro ao criar conta");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -39,8 +70,8 @@ const SignUp = ({ onSwitchToSignIn }) => {
         <InputField
           label="Nome Completo"
           type="text"
-          name="name"
-          value={formData.name}
+          name="nome"
+          value={formData.nome}
           onChange={handleChange}
           placeholder="Seu nome completo"
           required
@@ -57,9 +88,29 @@ const SignUp = ({ onSwitchToSignIn }) => {
         />
 
         <InputField
+          label="CPF"
+          type="text"
+          name="cpf"
+          value={formData.cpf}
+          onChange={handleChange}
+          placeholder="000.000.000-00"
+          required
+        />
+
+        <InputField
+          label="Telefone"
+          type="tel"
+          name="telefone"
+          value={formData.telefone}
+          onChange={handleChange}
+          placeholder="(11) 99999-9999"
+        />
+
+        <InputField
           label="Senha"
-          name="password"
-          value={formData.password}
+          type="password"
+          name="senha"
+          value={formData.senha}
           onChange={handleChange}
           placeholder="Sua senha"
           required
@@ -67,6 +118,7 @@ const SignUp = ({ onSwitchToSignIn }) => {
 
         <InputField
           label="Confirmar Senha"
+          type="password"
           name="confirmPassword"
           value={formData.confirmPassword}
           onChange={handleChange}
@@ -74,26 +126,16 @@ const SignUp = ({ onSwitchToSignIn }) => {
           required
         />
 
-        <Button type="submit" variant="primary" size="full">
-          Criar Conta
+        {error && (
+          <div className="text-red-600 text-sm bg-red-50 p-3 rounded-md">
+            {error}
+          </div>
+        )}
+
+        <Button type="submit" variant="primary" size="full" disabled={loading}>
+          {loading ? "Criando conta..." : "Criar Conta"}
         </Button>
       </form>
-
-      <div className="mt-6 flex items-center">
-        <div className="flex-1 border-t border-gray-200" />
-        <div className="px-4 text-sm text-gray-500">ou</div>
-        <div className="flex-1 border-t border-gray-200" />
-      </div>
-
-      <Button
-        variant="secondary"
-        size="full"
-        className="flex items-center justify-center mt-6"
-        onClick={handleGoogleSignup}
-      >
-        <span className="mr-3 text-lg">G</span>
-        Continuar com Google
-      </Button>
 
       <p className="text-center mt-6 text-sm text-green-700">
         Já tem uma conta?{" "}
