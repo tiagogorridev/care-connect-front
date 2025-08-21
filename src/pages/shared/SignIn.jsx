@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { toast } from 'react-toastify';
 import Button from "../../components/Button.jsx";
 import Card from "../../components/AuthCard.jsx";
 import InputField from "../../components/InputField.jsx";
@@ -12,7 +13,6 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
   });
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -20,20 +20,20 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
-
-    if (error) setError("");
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!formData.email || !formData.senha) {
-      setError("Por favor, preencha todos os campos");
+      toast.error("Por favor, preencha todos os campos", {
+        position: "top-right",
+        autoClose: 3000,
+      });
       return;
     }
 
     setLoading(true);
-    setError("");
 
     try {
       const response = await authService.signin(formData.email, formData.senha);
@@ -43,6 +43,16 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
       const { user } = response.data;
 
       localStorage.setItem("user", JSON.stringify(user));
+
+      // Toast de sucesso
+      toast.success(`Bem-vindo, ${user.nome}!`, {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
 
       if (onSignIn) {
         onSignIn(user.nome, {
@@ -54,19 +64,36 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
     } catch (error) {
       console.error("Erro no login:", error);
 
+      let errorMessage = "Erro ao fazer login";
+
       if (error.response?.status === 401) {
-        setError("Email ou senha incorretos");
+        errorMessage = "Email ou senha incorretos";
       } else if (error.response?.status === 500) {
-        setError("Erro no servidor. Tente novamente");
-      } else {
-        setError(error.response?.data?.error || "Erro ao fazer login");
+        errorMessage = "Erro no servidor. Tente novamente";
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
       }
+
+      // Toast de erro
+      toast.error(errorMessage, {
+        position: "top-right",
+        autoClose: 4000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogleLogin = () => {
+    toast.info("Entrando com Google...", {
+      position: "top-right",
+      autoClose: 2000,
+    });
+
     if (onSignIn) {
       onSignIn("Usuário Google", {
         email: "usuario@gmail.com",
@@ -85,7 +112,7 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
           value={formData.email}
           onChange={handleChange}
           placeholder="seu@email.com"
-          required
+          
         />
 
         <InputField
@@ -95,7 +122,7 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
           value={formData.senha}
           onChange={handleChange}
           placeholder="Sua senha"
-          required
+          
         />
 
         <div className="flex items-center justify-between">
@@ -114,12 +141,6 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
             Esqueceu a senha?
           </Button>
         </div>
-
-        {error && (
-          <div className="text-red-600 text-sm bg-red-50 p-3 rounded-md">
-            {error}
-          </div>
-        )}
 
         <Button type="submit" variant="primary" size="full" disabled={loading}>
           {loading ? "Entrando..." : "Entrar"}

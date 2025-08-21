@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import SignIn from "./pages/shared/SignIn.jsx";
 import SignUp from "./pages/shared/SignUp.jsx";
 import ForgotPassword from "./pages/shared/ForgotPassword.jsx";
@@ -34,11 +36,27 @@ function App() {
   // Se estiver logado, mostra o dashboard
   if (isLoggedIn) {
     return (
-      <PatientDashboard
-        userName={currentUser}
-        userData={userData}
-        onLogout={handleLogout}
-      />
+      <>
+        <PatientDashboard
+          userName={currentUser}
+          userData={userData}
+          onLogout={handleLogout}
+        />
+        
+        {/* ToastContainer para o dashboard */}
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop={false}
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+        />
+      </>
     );
   }
 
@@ -63,6 +81,21 @@ function App() {
       {currentPage === "forgot" && (
         <ForgotPassword onSwitchToSignIn={() => setCurrentPage("signin")} />
       )}
+
+      {/* ToastContainer global para as páginas de autenticação */}
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+        className="mt-16" // Margem superior para não sobrepor elementos
+      />
     </>
   );
 }
