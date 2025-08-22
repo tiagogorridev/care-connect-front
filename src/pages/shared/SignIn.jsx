@@ -22,14 +22,40 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
     }));
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!formData.email || !formData.senha) {
-      toast.error("Por favor, preencha todos os campos", {
+  const validateForm = () => {
+    if (!formData.email.trim()) {
+      toast.error("Por favor, digite seu email", {
         position: "top-right",
         autoClose: 3000,
       });
+      return false;
+    }
+
+    if (!formData.senha.trim()) {
+      toast.error("Por favor, digite sua senha", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      return false;
+    }
+
+    // Validação básica de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast.error("Por favor, digite um email válido", {
+        position: "top-right",
+        autoClose: 3000,
+      });
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
       return;
     }
 
@@ -37,52 +63,121 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
 
     try {
       const response = await authService.signin(formData.email, formData.senha);
-
       console.log("Login realizado:", response.data);
 
-      const { user } = response.data;
+      const { user } = response.data; 
 
-      localStorage.setItem("user", JSON.stringify(user));
+      console.log("Estrutura do user:", user);
+      console.log("Tipo do usuário (user.tipo):", user.tipo);
+
+      // Validação dos dados do usuário
+      if (!user) {
+        toast.error("Erro: Dados do usuário não recebidos. Entre em contato com o suporte.", {
+          position: "top-right",
+          autoClose: 5000,
+        });
+        return;
+      }
+
+      if (!user.tipo) {
+        toast.error("Erro: Tipo de usuário não definido. Entre em contato com o suporte.", {
+          position: "top-right",
+          autoClose: 5000,
+        });
+        return;
+      }
+
+      // Normaliza o tipo de usuário
+      const typeMap = {
+        paciente: "patient",
+        clinica: "clinic",
+        admin: "admin"
+      };
+
+      const userTypeRaw = user.tipo.toLowerCase().trim();
+      const userType = typeMap[userTypeRaw] || userTypeRaw;
+      const validTypes = ["admin", "clinic", "patient"];
+
+      if (!validTypes.includes(userType)) {
+        toast.error(`Erro: Tipo de usuário inválido (${userType}). Entre em contato com o suporte.`, {
+          position: "top-right",
+          autoClose: 5000,
+        });
+        return;
+      }
+
+      const userName = user.nome || user.name || user.email || "Usuário";
+
+      // Dados organizados para passar para onSignIn
+      const userDataForApp = {
+        ...user,
+        userType: userType,
+        loginType: "backend",
+        rememberMe: formData.rememberMe,
+        loginTimestamp: new Date().toISOString(),
+      };
 
       // Toast de sucesso
-      toast.success(`Bem-vindo, ${user.nome}!`, {
+      toast.success(`Bem-vindo, ${userName}!`, {
         position: "top-right",
-        autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
+        autoClose: 3000,
       });
 
+      // Chama a função de login no App
       if (onSignIn) {
-        onSignIn(user.nome, {
-          ...user,
-          loginType: "backend",
-          rememberMe: formData.rememberMe,
+        onSignIn(userName, userDataForApp);
+      }
+
+    } catch (error) {
+      console.error("Erro durante o login:", error);
+      
+      // Tratamento de erros mais específico
+      if (error.response) {
+        const status = error.response.status;
+        const message = error.response.data?.message || "Erro desconhecido";
+        
+        switch (status) {
+          case 401:
+            toast.error("Email ou senha incorretos", {
+              position: "top-right",
+              autoClose: 3000,
+            });
+            break;
+          case 404:
+            toast.error("Usuário não encontrado", {
+              position: "top-right",
+              autoClose: 3000,
+            });
+            break;
+          case 403:
+            toast.error("Acesso negado. Verifique suas credenciais.", {
+              position: "top-right",
+              autoClose: 3000,
+            });
+            break;
+          case 500:
+            toast.error("Erro interno do servidor. Tente novamente mais tarde.", {
+              position: "top-right",
+              autoClose: 5000,
+            });
+            break;
+          default:
+            toast.error(`Erro: ${message}`, {
+              position: "top-right",
+              autoClose: 3000,
+            });
+        }
+      } else if (error.request) {
+        toast.error("Erro de conexão. Verifique sua internet e tente novamente.", {
+          position: "top-right",
+          autoClose: 5000,
+        });
+      } else {
+        toast.error("Erro ao fazer login. Tente novamente.", {
+          position: "top-right",
+          autoClose: 3000,
         });
       }
-    } catch (error) {
-      console.error("Erro no login:", error);
-
-      let errorMessage = "Erro ao fazer login";
-
-      if (error.response?.status === 401) {
-        errorMessage = "Email ou senha incorretos";
-      } else if (error.response?.status === 500) {
-        errorMessage = "Erro no servidor. Tente novamente";
-      } else if (error.response?.data?.error) {
-        errorMessage = error.response.data.error;
-      }
-
-      // Toast de erro
-      toast.error(errorMessage, {
-        position: "top-right",
-        autoClose: 4000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      });
     } finally {
       setLoading(false);
     }
@@ -94,11 +189,24 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
       autoClose: 2000,
     });
 
+    // Simulação de login com Google
+    // Em produção, isso deveria integrar com a API do Google
+    const googleUserData = {
+      email: "usuario@gmail.com",
+      nome: "Usuário Google",
+      userType: "patient", // Tipo padrão para login do Google
+      loginType: "google",
+      loginTimestamp: new Date().toISOString(),
+    };
+
     if (onSignIn) {
-      onSignIn("Usuário Google", {
-        email: "usuario@gmail.com",
-        loginType: "google",
-      });
+      onSignIn("Usuário Google", googleUserData);
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !loading) {
+      handleSubmit(e);
     }
   };
 
@@ -111,8 +219,10 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
           name="email"
           value={formData.email}
           onChange={handleChange}
+          onKeyPress={handleKeyPress}
           placeholder="seu@email.com"
-          
+          required
+          disabled={loading}
         />
 
         <InputField
@@ -121,8 +231,10 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
           name="senha"
           value={formData.senha}
           onChange={handleChange}
+          onKeyPress={handleKeyPress}
           placeholder="Sua senha"
-          
+          required
+          disabled={loading}
         />
 
         <div className="flex items-center justify-between">
@@ -132,17 +244,29 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
               name="rememberMe"
               checked={formData.rememberMe}
               onChange={handleChange}
-              className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
+              disabled={loading}
+              className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded disabled:opacity-50"
             />
             <span className="ml-2 text-sm text-gray-600">Lembrar de mim</span>
           </label>
 
-          <Button variant="ghost" size="sm" onClick={onForgotPassword}>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={onForgotPassword}
+            disabled={loading}
+            type="button"
+          >
             Esqueceu a senha?
           </Button>
         </div>
 
-        <Button type="submit" variant="primary" size="full" disabled={loading}>
+        <Button 
+          type="submit" 
+          variant="primary" 
+          size="full" 
+          disabled={loading}
+        >
           {loading ? "Entrando..." : "Entrar"}
         </Button>
       </form>
@@ -159,6 +283,7 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
         className="flex items-center justify-center mt-6"
         onClick={handleGoogleLogin}
         disabled={loading}
+        type="button"
       >
         <span className="mr-3 text-lg">G</span>
         Continuar com Google
@@ -166,7 +291,13 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
 
       <p className="text-center mt-6 text-sm text-green-700">
         Não tem uma conta?{" "}
-        <Button variant="ghost" size="sm" onClick={onSwitchToSignUp}>
+        <Button 
+          variant="ghost" 
+          size="sm" 
+          onClick={onSwitchToSignUp}
+          disabled={loading}
+          type="button"
+        >
           Cadastre-se aqui
         </Button>
       </p>

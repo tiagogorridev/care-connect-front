@@ -1,6 +1,6 @@
 import { Bell, Plus, Search, Calendar, FileText } from "lucide-react";
 import AppointmentCard from "../../components/AppointmentCard.jsx";
-import Button from "../../components/Button";
+import Button from "../../components/Button.jsx";
 import { mockData, NOTIFICATION_TYPES } from "../../data/index.js";
 
 const Home = ({ userName }) => {
