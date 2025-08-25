@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { toast } from 'react-toastify';
+import { toast } from "react-toastify";
 import Button from "../../components/Button.jsx";
 import Card from "../../components/AuthCard.jsx";
 import InputField from "../../components/InputField.jsx";
@@ -11,7 +11,6 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
     senha: "",
     rememberMe: false,
   });
-
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -30,7 +29,6 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
       });
       return false;
     }
-
     if (!formData.senha.trim()) {
       toast.error("Por favor, digite sua senha", {
         position: "top-right",
@@ -38,7 +36,6 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
       });
       return false;
     }
-
     // Validação básica de email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
@@ -54,36 +51,48 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!validateForm()) {
       return;
     }
 
     setLoading(true);
-
     try {
       const response = await authService.signin(formData.email, formData.senha);
+
+      // 🔍 LOGS DE DEBUG - AGORA NO LUGAR CORRETO
+      console.log("=== DEBUG LOGIN ===");
+      console.log("Response completa:", response.data);
+      console.log("User object:", response.data.user);
+      console.log("Tipo específico:", response.data.user.tipo);
+      console.log("Tipo é undefined?", response.data.user.tipo === undefined);
+      console.log("Tipo é null?", response.data.user.tipo === null);
+      console.log("==================");
+
       console.log("Login realizado:", response.data);
-
-      const { user } = response.data; 
-
+      const { user } = response.data;
       console.log("Estrutura do user:", user);
       console.log("Tipo do usuário (user.tipo):", user.tipo);
 
       // Validação dos dados do usuário
       if (!user) {
-        toast.error("Erro: Dados do usuário não recebidos. Entre em contato com o suporte.", {
-          position: "top-right",
-          autoClose: 5000,
-        });
+        toast.error(
+          "Erro: Dados do usuário não recebidos. Entre em contato com o suporte.",
+          {
+            position: "top-right",
+            autoClose: 5000,
+          }
+        );
         return;
       }
 
       if (!user.tipo) {
-        toast.error("Erro: Tipo de usuário não definido. Entre em contato com o suporte.", {
-          position: "top-right",
-          autoClose: 5000,
-        });
+        toast.error(
+          "Erro: Tipo de usuário não definido. Entre em contato com o suporte.",
+          {
+            position: "top-right",
+            autoClose: 5000,
+          }
+        );
         return;
       }
 
@@ -91,18 +100,20 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
       const typeMap = {
         paciente: "patient",
         clinica: "clinic",
-        admin: "admin"
+        admin: "admin",
       };
-
       const userTypeRaw = user.tipo.toLowerCase().trim();
       const userType = typeMap[userTypeRaw] || userTypeRaw;
-      const validTypes = ["admin", "clinic", "patient"];
 
+      const validTypes = ["admin", "clinic", "patient"];
       if (!validTypes.includes(userType)) {
-        toast.error(`Erro: Tipo de usuário inválido (${userType}). Entre em contato com o suporte.`, {
-          position: "top-right",
-          autoClose: 5000,
-        });
+        toast.error(
+          `Erro: Tipo de usuário inválido (${userType}). Entre em contato com o suporte.`,
+          {
+            position: "top-right",
+            autoClose: 5000,
+          }
+        );
         return;
       }
 
@@ -127,15 +138,13 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
       if (onSignIn) {
         onSignIn(userName, userDataForApp);
       }
-
     } catch (error) {
       console.error("Erro durante o login:", error);
-      
       // Tratamento de erros mais específico
       if (error.response) {
         const status = error.response.status;
         const message = error.response.data?.message || "Erro desconhecido";
-        
+
         switch (status) {
           case 401:
             toast.error("Email ou senha incorretos", {
@@ -156,10 +165,13 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
             });
             break;
           case 500:
-            toast.error("Erro interno do servidor. Tente novamente mais tarde.", {
-              position: "top-right",
-              autoClose: 5000,
-            });
+            toast.error(
+              "Erro interno do servidor. Tente novamente mais tarde.",
+              {
+                position: "top-right",
+                autoClose: 5000,
+              }
+            );
             break;
           default:
             toast.error(`Erro: ${message}`, {
@@ -168,10 +180,13 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
             });
         }
       } else if (error.request) {
-        toast.error("Erro de conexão. Verifique sua internet e tente novamente.", {
-          position: "top-right",
-          autoClose: 5000,
-        });
+        toast.error(
+          "Erro de conexão. Verifique sua internet e tente novamente.",
+          {
+            position: "top-right",
+            autoClose: 5000,
+          }
+        );
       } else {
         toast.error("Erro ao fazer login. Tente novamente.", {
           position: "top-right",
@@ -188,7 +203,6 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
       position: "top-right",
       autoClose: 2000,
     });
-
     // Simulação de login com Google
     // Em produção, isso deveria integrar com a API do Google
     const googleUserData = {
@@ -205,7 +219,7 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !loading) {
+    if (e.key === "Enter" && !loading) {
       handleSubmit(e);
     }
   };
@@ -250,9 +264,9 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
             <span className="ml-2 text-sm text-gray-600">Lembrar de mim</span>
           </label>
 
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={onForgotPassword}
             disabled={loading}
             type="button"
@@ -261,12 +275,7 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
           </Button>
         </div>
 
-        <Button 
-          type="submit" 
-          variant="primary" 
-          size="full" 
-          disabled={loading}
-        >
+        <Button type="submit" variant="primary" size="full" disabled={loading}>
           {loading ? "Entrando..." : "Entrar"}
         </Button>
       </form>
@@ -291,9 +300,9 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
 
       <p className="text-center mt-6 text-sm text-green-700">
         Não tem uma conta?{" "}
-        <Button 
-          variant="ghost" 
-          size="sm" 
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={onSwitchToSignUp}
           disabled={loading}
           type="button"
