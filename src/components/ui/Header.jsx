@@ -2,14 +2,13 @@ import { Bell, User, LogOut } from "lucide-react";
 
 const Header = ({ userName, notifications = [], onLogout }) => {
   const handleLogout = () => {
-    // Limpa dados do localStorage
-    localStorage.removeItem("user");
-    localStorage.removeItem("token");
+    // Limpa todos os dados do localStorage
+    localStorage.clear();
 
     if (onLogout) {
       onLogout();
     } else {
-      window.location.href = "/";
+      window.location.href = "/signIn";
     }
   };
 
