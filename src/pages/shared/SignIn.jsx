@@ -23,26 +23,11 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
 
   const validateForm = () => {
     if (!formData.email.trim()) {
-      toast.error("Por favor, digite seu email", {
-        position: "top-right",
-        autoClose: 3000,
-      });
+      toast.error("Por favor, digite seu email");
       return false;
     }
     if (!formData.senha.trim()) {
-      toast.error("Por favor, digite sua senha", {
-        position: "top-right",
-        autoClose: 3000,
-      });
-      return false;
-    }
-    // Validação básica de email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(formData.email)) {
-      toast.error("Por favor, digite um email válido", {
-        position: "top-right",
-        autoClose: 3000,
-      });
+      toast.error("Por favor, digite sua senha");
       return false;
     }
 
@@ -51,52 +36,20 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return;
 
     setLoading(true);
     try {
       const response = await authService.signin(formData.email, formData.senha);
-
-      // 🔍 LOGS DE DEBUG - AGORA NO LUGAR CORRETO
-      console.log("=== DEBUG LOGIN ===");
-      console.log("Response completa:", response.data);
-      console.log("User object:", response.data.user);
-      console.log("Tipo específico:", response.data.user.tipo);
-      console.log("Tipo é undefined?", response.data.user.tipo === undefined);
-      console.log("Tipo é null?", response.data.user.tipo === null);
-      console.log("==================");
-
-      console.log("Login realizado:", response.data);
       const { user } = response.data;
-      console.log("Estrutura do user:", user);
-      console.log("Tipo do usuário (user.tipo):", user.tipo);
 
-      // Validação dos dados do usuário
-      if (!user) {
+      if (!user || !user.tipo) {
         toast.error(
-          "Erro: Dados do usuário não recebidos. Entre em contato com o suporte.",
-          {
-            position: "top-right",
-            autoClose: 5000,
-          }
+          "Erro: Dados do usuário inválidos. Entre em contato com o suporte."
         );
         return;
       }
 
-      if (!user.tipo) {
-        toast.error(
-          "Erro: Tipo de usuário não definido. Entre em contato com o suporte.",
-          {
-            position: "top-right",
-            autoClose: 5000,
-          }
-        );
-        return;
-      }
-
-      // Normaliza o tipo de usuário
       const typeMap = {
         paciente: "patient",
         clinica: "clinic",
@@ -108,90 +61,57 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
       const validTypes = ["admin", "clinic", "patient"];
       if (!validTypes.includes(userType)) {
         toast.error(
-          `Erro: Tipo de usuário inválido (${userType}). Entre em contato com o suporte.`,
-          {
-            position: "top-right",
-            autoClose: 5000,
-          }
+          `Erro: Tipo de usuário inválido. Entre em contato com o suporte.`
         );
         return;
       }
 
-      const userName = user.nome || user.name || user.email || "Usuário";
+      const userName = user.nome;
 
-      // Dados organizados para passar para onSignIn
       const userDataForApp = {
         ...user,
         userType: userType,
         loginType: "backend",
         rememberMe: formData.rememberMe,
         loginTimestamp: new Date().toISOString(),
+        accessToken: response.data.accessToken || user.accessToken,
+        refreshToken: response.data.refreshToken || user.refreshToken,
       };
 
-      // Toast de sucesso
-      toast.success(`Bem-vindo, ${userName}!`, {
-        position: "top-right",
-        autoClose: 3000,
-      });
+      toast.success(`Bem-vindo, ${userName}!`);
 
-      // Chama a função de login no App
       if (onSignIn) {
         onSignIn(userName, userDataForApp);
       }
     } catch (error) {
-      console.error("Erro durante o login:", error);
-      // Tratamento de erros mais específico
       if (error.response) {
         const status = error.response.status;
         const message = error.response.data?.message || "Erro desconhecido";
 
         switch (status) {
           case 401:
-            toast.error("Email ou senha incorretos", {
-              position: "top-right",
-              autoClose: 3000,
-            });
+            toast.error("Email ou senha incorretos");
             break;
           case 404:
-            toast.error("Usuário não encontrado", {
-              position: "top-right",
-              autoClose: 3000,
-            });
+            toast.error("Usuário não encontrado");
             break;
           case 403:
-            toast.error("Acesso negado. Verifique suas credenciais.", {
-              position: "top-right",
-              autoClose: 3000,
-            });
+            toast.error("Acesso negado. Verifique suas credenciais.");
             break;
           case 500:
             toast.error(
-              "Erro interno do servidor. Tente novamente mais tarde.",
-              {
-                position: "top-right",
-                autoClose: 5000,
-              }
+              "Erro interno do servidor. Tente novamente mais tarde."
             );
             break;
           default:
-            toast.error(`Erro: ${message}`, {
-              position: "top-right",
-              autoClose: 3000,
-            });
+            toast.error(`Erro: ${message}`);
         }
       } else if (error.request) {
         toast.error(
-          "Erro de conexão. Verifique sua internet e tente novamente.",
-          {
-            position: "top-right",
-            autoClose: 5000,
-          }
+          "Erro de conexão. Verifique sua internet e tente novamente."
         );
       } else {
-        toast.error("Erro ao fazer login. Tente novamente.", {
-          position: "top-right",
-          autoClose: 3000,
-        });
+        toast.error("Erro ao fazer login. Tente novamente.");
       }
     } finally {
       setLoading(false);
@@ -199,16 +119,12 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
   };
 
   const handleGoogleLogin = () => {
-    toast.info("Entrando com Google...", {
-      position: "top-right",
-      autoClose: 2000,
-    });
-    // Simulação de login com Google
-    // Em produção, isso deveria integrar com a API do Google
+    toast.info("Entrando com Google...");
+
     const googleUserData = {
       email: "usuario@gmail.com",
       nome: "Usuário Google",
-      userType: "patient", // Tipo padrão para login do Google
+      userType: "patient",
       loginType: "google",
       loginTimestamp: new Date().toISOString(),
     };

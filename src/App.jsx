@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import SignIn from "./pages/shared/SignIn.jsx";
 import SignUp from "./pages/shared/SignUp.jsx";
 import ForgotPassword from "./pages/shared/ForgotPassword.jsx";
@@ -25,20 +25,23 @@ function App() {
         const savedUser = localStorage.getItem("currentUser");
         const savedUserData = localStorage.getItem("userData");
         const userType = localStorage.getItem("userType");
+        const accessToken = localStorage.getItem("accessToken");
 
-        // Verifica se todos os dados necessários existem e são válidos
-        if (savedUser && savedUserData && userType &&
-          userType !== "undefined" && userType !== "null") {
-
+        if (
+          savedUser &&
+          savedUserData &&
+          userType &&
+          accessToken &&
+          userType !== "undefined" &&
+          userType !== "null"
+        ) {
           const parsedUserData = JSON.parse(savedUserData);
 
-          // Validação adicional dos dados
           if (parsedUserData && parsedUserData.userType === userType) {
             setCurrentUser(savedUser);
             setUserData(parsedUserData);
             setIsLoggedIn(true);
           } else {
-            // Limpa dados inconsistentes
             clearAuthData();
           }
         } else {
@@ -60,30 +63,35 @@ function App() {
     localStorage.removeItem("currentUser");
     localStorage.removeItem("userData");
     localStorage.removeItem("userType");
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
   };
 
   // Função de login
   const handleSignIn = (userName, formData) => {
     try {
-      console.log("handleSignIn chamado:", { userName, formData });
-
-      // Validação dos dados recebidos
       if (!userName || !formData || !formData.userType) {
         console.error("Dados de login inválidos");
         return;
       }
 
-      // Armazena os dados
+      // Armazena os dados básicos
       localStorage.setItem("currentUser", userName);
       localStorage.setItem("userData", JSON.stringify(formData));
       localStorage.setItem("userType", formData.userType);
+
+      // Armazena os tokens se existirem
+      if (formData.accessToken) {
+        localStorage.setItem("accessToken", formData.accessToken);
+      }
+      if (formData.refreshToken) {
+        localStorage.setItem("refreshToken", formData.refreshToken);
+      }
 
       // Atualiza o estado
       setCurrentUser(userName);
       setUserData(formData);
       setIsLoggedIn(true);
-
-      console.log("Estado atualizado, redirecionando...");
 
       // Redireciona baseado no tipo
       const userType = formData.userType;
@@ -149,34 +157,40 @@ function App() {
         <Route
           path="/signin"
           element={
-            isLoggedIn ?
-              <Navigate to={getHomeRoute(userData?.userType)} replace /> :
+            isLoggedIn ? (
+              <Navigate to={getHomeRoute(userData?.userType)} replace />
+            ) : (
               <SignIn
                 onSwitchToSignUp={() => navigate("/signup")}
                 onForgotPassword={() => navigate("/forgot")}
                 onSignIn={handleSignIn}
               />
+            )
           }
         />
 
         <Route
           path="/signup"
           element={
-            isLoggedIn ?
-              <Navigate to={getHomeRoute(userData?.userType)} replace /> :
+            isLoggedIn ? (
+              <Navigate to={getHomeRoute(userData?.userType)} replace />
+            ) : (
               <SignUp
                 onSwitchToSignIn={() => navigate("/signin")}
                 onSignUp={handleSignIn}
               />
+            )
           }
         />
 
         <Route
           path="/forgot"
           element={
-            isLoggedIn ?
-              <Navigate to={getHomeRoute(userData?.userType)} replace /> :
+            isLoggedIn ? (
+              <Navigate to={getHomeRoute(userData?.userType)} replace />
+            ) : (
               <ForgotPassword onSwitchToSignIn={() => navigate("/signin")} />
+            )
           }
         />
 
@@ -224,9 +238,11 @@ function App() {
         <Route
           path="/"
           element={
-            isLoggedIn ?
-              <Navigate to={getHomeRoute(userData?.userType)} replace /> :
+            isLoggedIn ? (
+              <Navigate to={getHomeRoute(userData?.userType)} replace />
+            ) : (
               <Navigate to="/signin" replace />
+            )
           }
         />
 
@@ -234,7 +250,10 @@ function App() {
         <Route
           path="*"
           element={
-            <Navigate to={isLoggedIn ? getHomeRoute(userData?.userType) : "/signin"} replace />
+            <Navigate
+              to={isLoggedIn ? getHomeRoute(userData?.userType) : "/signin"}
+              replace
+            />
           }
         />
       </Routes>
