@@ -1,4 +1,4 @@
-import { APPOINTMENT_STATUS } from "../data/index.js";
+import { APPOINTMENT_STATUS } from "../../../data/index.js";
 
 const AppointmentCard = ({ appointment, isUpcoming = true }) => {
   if (!appointment) {

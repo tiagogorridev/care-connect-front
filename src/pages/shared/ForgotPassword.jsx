@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import Button from "../../components/Button.jsx";
-import Card from "../../components/AuthCard.jsx";
-import InputField from "../../components/InputField.jsx";
+import { useState } from "react";
+import Button from "../../components/shared/others/Button.jsx";
+import Card from "../../components/shared/others/AuthCard.jsx";
+import InputField from "../../components/shared/others/InputField.jsx";
 
 const ForgotPassword = ({ onSwitchToSignIn }) => {
   const [email, setEmail] = useState("");
@@ -12,7 +12,6 @@ const ForgotPassword = ({ onSwitchToSignIn }) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Simula envio do email
     setTimeout(() => {
       setIsEmailSent(true);
       setIsLoading(false);

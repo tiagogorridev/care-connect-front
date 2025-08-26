@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { toast } from 'react-toastify';
-import Button from "../../components/Button.jsx";
-import Card from "../../components/AuthCard.jsx";
-import InputField from "../../components/InputField.jsx";
+import { toast } from "react-toastify";
+import Button from "../../components/shared/others/Button.jsx";
+import Card from "../../components/shared/others/AuthCard.jsx";
+import InputField from "../../components/shared/others/InputField.jsx";
 import api from "../../services/apiService.js";
 
 const SignUp = ({ onSwitchToSignIn }) => {
@@ -28,81 +28,37 @@ const SignUp = ({ onSwitchToSignIn }) => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Validação de senhas
     if (formData.senha !== formData.confirmPassword) {
-      toast.error("As senhas não coincidem", {
-        position: "top-right",
-        autoClose: 3000,
-      });
+      toast.error("As senhas não coincidem");
       return;
     }
 
-    // Validação de campos obrigatórios
     if (!formData.nome || !formData.email || !formData.senha || !formData.cpf) {
-      toast.warn("Por favor, preencha todos os campos obrigatórios", {
-        position: "top-right",
-        autoClose: 3000,
-      });
+      toast.error("Por favor, preencha todos os campos obrigatórios");
       return;
     }
 
     setLoading(true);
 
-    // Toast de loading usando promise
-    const signupPromise = new Promise(async (resolve, reject) => {
-      try {
-        const { confirmPassword, ...userData } = formData;
-        const response = await api.post("/users/signup", userData);
-        
-        console.log("Usuário criado:", response.data);
-        resolve(response.data);
-      } catch (error) {
-        console.error("Erro no cadastro:", error);
-        reject(error);
-      }
-    });
-
-    toast.promise(
-      signupPromise,
-      {
-        pending: 'Criando sua conta...',
-        success: {
-          render() {
-            // Limpar formulário após sucesso
-            setFormData({
-              nome: "",
-              email: "",
-              senha: "",
-              confirmPassword: "",
-              telefone: "",
-              cpf: "",
-              tipo: "PACIENTE",
-            });
-
-            // Redirecionar para login após 2 segundos
-            setTimeout(() => {
-              onSwitchToSignIn();
-            }, 2000);
-
-            return 'Conta criada com sucesso! Redirecionando...';
-          }
-        },
-        error: {
-          render({ data }) {
-            return data.response?.data?.error || "Erro ao criar conta";
-          }
-        }
-      },
-      {
-        position: "top-right",
-        autoClose: 3000,
-      }
-    );
-
     try {
-      await signupPromise;
+      const { confirmPassword, ...userData } = formData;
+      await api.post("/users/signup", userData);
+
+      toast.success("Conta criada com sucesso! Redirecionando...");
+
+      setFormData({
+        nome: "",
+        email: "",
+        senha: "",
+        confirmPassword: "",
+        telefone: "",
+        cpf: "",
+        tipo: "PACIENTE",
+      });
+
+      setTimeout(() => onSwitchToSignIn?.(), 2000);
     } catch (error) {
-      // Erro já tratado pelo toast.promise
+      toast.error(error.response?.data?.error || "Erro ao criar conta");
     } finally {
       setLoading(false);
     }
@@ -118,7 +74,7 @@ const SignUp = ({ onSwitchToSignIn }) => {
           value={formData.nome}
           onChange={handleChange}
           placeholder="Seu nome completo"
-          
+          required
         />
 
         <InputField
@@ -128,7 +84,7 @@ const SignUp = ({ onSwitchToSignIn }) => {
           value={formData.email}
           onChange={handleChange}
           placeholder="seu@email.com"
-          
+          required
         />
 
         <InputField
@@ -138,7 +94,7 @@ const SignUp = ({ onSwitchToSignIn }) => {
           value={formData.cpf}
           onChange={handleChange}
           placeholder="000.000.000-00"
-          
+          required
         />
 
         <InputField
@@ -157,7 +113,7 @@ const SignUp = ({ onSwitchToSignIn }) => {
           value={formData.senha}
           onChange={handleChange}
           placeholder="Sua senha"
-          
+          required
         />
 
         <InputField
@@ -167,7 +123,7 @@ const SignUp = ({ onSwitchToSignIn }) => {
           value={formData.confirmPassword}
           onChange={handleChange}
           placeholder="Confirme sua senha"
-          
+          required
         />
 
         <Button type="submit" variant="primary" size="full" disabled={loading}>

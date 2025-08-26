@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Search } from "lucide-react";
-import Button from "../../components/Button";
-import DoctorCard from "../../components/DoctorCard";
-import InputField from "../../components/InputField";
+import Button from "../../components/shared/others/Button";
+import DoctorCard from "../../components/shared/others/DoctorCard";
+import InputField from "../../components/shared/others/InputField";
 import { DOCTORS, SPECIALTIES } from "../../data/doctorsMockData";
 
-const SearchPage = () => {
+const SearchDoctors = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSpecialty, setSelectedSpecialty] = useState("");
 
@@ -32,17 +32,25 @@ const SearchPage = () => {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-gray-900">Buscar Médicos</h1>
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900">Buscar Médicos</h1>
+        <p className="text-gray-600 mt-1">
+          Encontre o médico ideal para suas necessidades
+        </p>
+      </div>
 
       {/* Search and Filter */}
       <div className="bg-white rounded-xl shadow-sm border p-6 space-y-4">
-        <InputField
-          label="Buscar Médico"
-          placeholder="Digite o nome do médico ou especialidade..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10"
-        />
+        <div className="relative">
+          <InputField
+            label="Buscar Médico"
+            placeholder="Digite o nome do médico ou especialidade..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
 
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -61,12 +69,24 @@ const SearchPage = () => {
             ))}
           </select>
         </div>
+
+        {(searchTerm || selectedSpecialty) && (
+          <div className="flex justify-end">
+            <Button variant="ghost" size="sm" onClick={clearFilters}>
+              Limpar Filtros
+            </Button>
+          </div>
+        )}
       </div>
 
-      <p className="text-gray-600">
-        {filteredDoctors.length} médico{filteredDoctors.length !== 1 ? "s" : ""}{" "}
-        encontrado{filteredDoctors.length !== 1 ? "s" : ""}
-      </p>
+      {/* Results Count */}
+      <div className="flex items-center justify-between">
+        <p className="text-gray-600">
+          {filteredDoctors.length} médico
+          {filteredDoctors.length !== 1 ? "s" : ""} encontrado
+          {filteredDoctors.length !== 1 ? "s" : ""}
+        </p>
+      </div>
 
       {/* Results */}
       <div className="space-y-4">
@@ -80,6 +100,10 @@ const SearchPage = () => {
             <h3 className="text-lg font-medium text-gray-900 mb-2">
               Nenhum médico encontrado
             </h3>
+            <p className="text-gray-600 mb-6">
+              Tente ajustar seus filtros de busca ou procurar por termos
+              diferentes
+            </p>
             <Button variant="secondary" size="md" onClick={clearFilters}>
               Limpar Filtros
             </Button>
@@ -90,4 +114,4 @@ const SearchPage = () => {
   );
 };
 
-export default SearchPage;
+export default SearchDoctors;

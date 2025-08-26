@@ -2,59 +2,58 @@ import axios from "axios";
 
 const api = axios.create({
   baseURL: "http://localhost:8080/api",
-  headers: {
-    "Content-Type": "application/json",
-  },
+  headers: { "Content-Type": "application/json" },
 });
+
+const clearAuth = () => {
+  const keys = [
+    "currentUser",
+    "userData",
+    "userType",
+    "accessToken",
+    "refreshToken",
+  ];
+  keys.forEach((key) => localStorage.removeItem(key));
+  window.location.href = "/signin";
+};
 
 api.interceptors.request.use(
   (config) => {
-    const accessToken = localStorage.getItem("accessToken");
-    if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
-    }
+    const token = localStorage.getItem("accessToken");
+    if (token) config.headers.Authorization = `Bearer ${token}`;
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-
       const refreshToken = localStorage.getItem("refreshToken");
+
       if (refreshToken) {
         try {
-          const response = await axios.post(
+          const { data } = await axios.post(
             "http://localhost:8080/api/auth/refresh",
             { refreshToken }
           );
 
-          const { accessToken, refreshToken: newRefreshToken } = response.data;
-
-          localStorage.setItem("accessToken", accessToken);
-          if (newRefreshToken) {
-            localStorage.setItem("refreshToken", newRefreshToken);
+          localStorage.setItem("accessToken", data.accessToken);
+          if (data.refreshToken) {
+            localStorage.setItem("refreshToken", data.refreshToken);
           }
 
-          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+          originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
           return api(originalRequest);
-        } catch (refreshError) {
-          localStorage.removeItem("currentUser");
-          localStorage.removeItem("userData");
-          localStorage.removeItem("userType");
-          localStorage.removeItem("accessToken");
-          localStorage.removeItem("refreshToken");
-          window.location.href = "/signin";
+        } catch {
+          clearAuth();
         }
+      } else {
+        clearAuth();
       }
     }
 

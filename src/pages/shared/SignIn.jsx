@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
-import Button from "../../components/Button.jsx";
-import Card from "../../components/AuthCard.jsx";
-import InputField from "../../components/InputField.jsx";
+import { useNavigate } from "react-router-dom";
+import Button from "../../components/shared/others/Button.jsx";
+import Card from "../../components/shared/others/AuthCard.jsx";
+import InputField from "../../components/shared/others/InputField.jsx";
 import { authService } from "../../services/authService.js";
 
 const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
@@ -12,6 +13,7 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
     rememberMe: false,
   });
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -30,7 +32,6 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
       toast.error("Por favor, digite sua senha");
       return false;
     }
-
     return true;
   };
 
@@ -39,14 +40,13 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
     if (!validateForm()) return;
 
     setLoading(true);
+
     try {
       const response = await authService.signin(formData.email, formData.senha);
       const { user } = response.data;
 
-      if (!user || !user.tipo) {
-        toast.error(
-          "Erro: Dados do usuário inválidos. Entre em contato com o suporte."
-        );
+      if (!user?.tipo) {
+        toast.error("Dados do usuário inválidos");
         return;
       }
 
@@ -55,63 +55,34 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
         clinica: "clinic",
         admin: "admin",
       };
-      const userTypeRaw = user.tipo.toLowerCase().trim();
-      const userType = typeMap[userTypeRaw] || userTypeRaw;
 
-      const validTypes = ["admin", "clinic", "patient"];
-      if (!validTypes.includes(userType)) {
-        toast.error(
-          `Erro: Tipo de usuário inválido. Entre em contato com o suporte.`
-        );
+      const userType =
+        typeMap[user.tipo.toLowerCase()] || user.tipo.toLowerCase();
+
+      if (!["admin", "clinic", "patient"].includes(userType)) {
+        toast.error("Tipo de usuário inválido");
         return;
       }
 
-      const userName = user.nome;
-
       const userDataForApp = {
         ...user,
-        userType: userType,
+        userType,
         loginType: "backend",
         rememberMe: formData.rememberMe,
         loginTimestamp: new Date().toISOString(),
-        accessToken: response.data.accessToken || user.accessToken,
-        refreshToken: response.data.refreshToken || user.refreshToken,
+        accessToken: response.data.accessToken,
+        refreshToken: response.data.refreshToken,
       };
 
-      toast.success(`Bem-vindo, ${userName}!`);
-
-      if (onSignIn) {
-        onSignIn(userName, userDataForApp);
-      }
+      toast.success(`Bem-vindo, ${user.nome}!`);
+      onSignIn?.(user.nome, userDataForApp);
     } catch (error) {
-      if (error.response) {
-        const status = error.response.status;
-        const message = error.response.data?.message || "Erro desconhecido";
-
-        switch (status) {
-          case 401:
-            toast.error("Email ou senha incorretos");
-            break;
-          case 404:
-            toast.error("Usuário não encontrado");
-            break;
-          case 403:
-            toast.error("Acesso negado. Verifique suas credenciais.");
-            break;
-          case 500:
-            toast.error(
-              "Erro interno do servidor. Tente novamente mais tarde."
-            );
-            break;
-          default:
-            toast.error(`Erro: ${message}`);
-        }
+      if (error.response?.status === 401) {
+        toast.error("Email ou senha incorretos");
       } else if (error.request) {
-        toast.error(
-          "Erro de conexão. Verifique sua internet e tente novamente."
-        );
+        toast.error("Erro de conexão. Verifique sua internet");
       } else {
-        toast.error("Erro ao fazer login. Tente novamente.");
+        toast.error("Erro ao fazer login");
       }
     } finally {
       setLoading(false);
@@ -120,7 +91,6 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
 
   const handleGoogleLogin = () => {
     toast.info("Entrando com Google...");
-
     const googleUserData = {
       email: "usuario@gmail.com",
       nome: "Usuário Google",
@@ -128,16 +98,11 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
       loginType: "google",
       loginTimestamp: new Date().toISOString(),
     };
-
-    if (onSignIn) {
-      onSignIn("Usuário Google", googleUserData);
-    }
+    onSignIn?.("Usuário Google", googleUserData);
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === "Enter" && !loading) {
-      handleSubmit(e);
-    }
+    if (e.key === "Enter" && !loading) handleSubmit(e);
   };
 
   return (
@@ -179,11 +144,10 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
             />
             <span className="ml-2 text-sm text-gray-600">Lembrar de mim</span>
           </label>
-
           <Button
             variant="ghost"
             size="sm"
-            onClick={onForgotPassword}
+            onClick={onForgotPassword || (() => navigate("/forgot"))}
             disabled={loading}
             type="button"
           >
@@ -219,7 +183,7 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
         <Button
           variant="ghost"
           size="sm"
-          onClick={onSwitchToSignUp}
+          onClick={onSwitchToSignUp || (() => navigate("/signup"))}
           disabled={loading}
           type="button"
         >

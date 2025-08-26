@@ -1,7 +1,7 @@
-import { Star, MapPin, Clock, Calendar } from "lucide-react";
+import { Star, MapPin, Clock } from "lucide-react";
 import Button from "./Button.jsx";
 
-const DoctorCard = ({ doctor }) => (
+const DoctorCard = ({ doctor, onViewProfile }) => (
   <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
     <div className="flex flex-col lg:flex-row gap-6">
       <div className="flex items-start space-x-4 flex-1">
@@ -12,7 +12,7 @@ const DoctorCard = ({ doctor }) => (
         />
         <div className="flex-1">
           <h3 className="text-xl font-semibold text-gray-900">{doctor.name}</h3>
-          <p className="text-green-600 font-medium">{doctor.specialty}</p>
+          <p className="text-blue-600 font-medium">{doctor.specialty}</p>
           <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">
             <div className="flex items-center space-x-1">
               <Star className="text-yellow-400 fill-current" size={16} />
@@ -36,24 +36,20 @@ const DoctorCard = ({ doctor }) => (
         </div>
         <div className="text-right lg:text-left">
           <div className="flex items-center space-x-1 text-sm text-gray-600 justify-end lg:justify-start">
-            <Clock size={16} className="text-green-600" />
+            <Clock size={16} className="text-blue-600" />
             <span>Próximo horário:</span>
           </div>
-          <p className="text-sm font-medium text-green-600">
+          <p className="text-sm font-medium text-blue-600">
             {doctor.nextAvailable}
           </p>
         </div>
         <div className="flex space-x-2">
-          <Button variant="secondary" size="sm">
-            Ver Perfil
-          </Button>
           <Button
-            variant="primary"
+            variant="secondary"
             size="sm"
-            className="flex items-center space-x-1"
+            onClick={() => onViewProfile(doctor)}
           >
-            <Calendar size={16} />
-            <span>Agendar</span>
+            Ver Perfil
           </Button>
         </div>
       </div>
