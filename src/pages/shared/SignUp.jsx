@@ -42,7 +42,7 @@ const SignUp = ({ onSwitchToSignIn }) => {
 
     try {
       const { confirmPassword, ...userData } = formData;
-      await api.post("/users/signup", userData);
+      await api.post("/auth/signup", userData);
 
       toast.success("Conta criada com sucesso! Redirecionando...");
 
