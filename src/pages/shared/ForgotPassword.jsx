@@ -23,6 +23,16 @@ const ForgotPassword = ({ onSwitchToSignIn }) => {
     setIsLoading(false);
   };
 
+  // CORREÇÃO: Garantir que onSwitchToSignIn sempre existe
+  const handleBackToLogin = () => {
+    if (typeof onSwitchToSignIn === "function") {
+      onSwitchToSignIn();
+    } else {
+      // Fallback para navegação direta
+      window.location.href = "/signin";
+    }
+  };
+
   if (isEmailSent) {
     return (
       <Card subtitle="Código enviado!">
@@ -42,7 +52,12 @@ const ForgotPassword = ({ onSwitchToSignIn }) => {
             <Button variant="primary" size="full" onClick={resetForm}>
               Reenviar código
             </Button>
-            <Button variant="ghost" size="sm" onClick={onSwitchToSignIn}>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleBackToLogin}
+              type="button"
+            >
               Voltar ao login
             </Button>
           </div>
@@ -80,8 +95,9 @@ const ForgotPassword = ({ onSwitchToSignIn }) => {
       <Button
         variant="ghost"
         size="sm"
-        onClick={onSwitchToSignIn}
+        onClick={handleBackToLogin}
         className="w-full mt-6 text-sm"
+        type="button"
       >
         Lembrou da senha? Fazer login
       </Button>

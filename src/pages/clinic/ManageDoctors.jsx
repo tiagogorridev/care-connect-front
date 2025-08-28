@@ -5,6 +5,7 @@ import Button from "../../components/shared/others/Button";
 import DoctorCard from "../../components/shared/others/DoctorCard";
 import DoctorForm from "../../components/clinic/DoctorForm";
 import DoctorDetailsModal from "../../components/shared/others/DoctorDetailsModal";
+import EditDoctorModal from "../../components/clinic/EditDoctorModal";
 import {
   DOCTORS,
   FORM_SPECIALTIES,
@@ -16,6 +17,7 @@ const ManageDoctors = () => {
   const [filteredDoctors, setFilteredDoctors] = useState(DOCTORS);
   const [showForm, setShowForm] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [editingDoctor, setEditingDoctor] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSpecialty, setSelectedSpecialty] = useState("all");
   const [selectedLocation, setSelectedLocation] = useState("all");
@@ -74,18 +76,25 @@ const ManageDoctors = () => {
     setShowForm(false);
   }, []);
 
-  const handleEditDoctor = useCallback((doctorId, updatedData) => {
+  const handleEditDoctor = useCallback((doctor) => {
+    // Abrir modal de edição com os dados do médico
+    setEditingDoctor(doctor);
+  }, []);
+
+  const handleSaveEditedDoctor = useCallback((updatedDoctor) => {
     setDoctors((prev) =>
       prev.map((doctor) =>
-        doctor.id === doctorId ? { ...doctor, ...updatedData } : doctor
+        doctor.id === updatedDoctor.id ? updatedDoctor : doctor
       )
     );
+    setEditingDoctor(null);
   }, []);
 
   const handleDeleteDoctor = useCallback((doctorId) => {
     if (window.confirm("Tem certeza que deseja remover este médico?")) {
       setDoctors((prev) => prev.filter((doctor) => doctor.id !== doctorId));
       setSelectedDoctor(null);
+      setEditingDoctor(null);
     }
   }, []);
 
@@ -95,6 +104,10 @@ const ManageDoctors = () => {
 
   const handleCloseModal = useCallback(() => {
     setSelectedDoctor(null);
+  }, []);
+
+  const handleCloseEditModal = useCallback(() => {
+    setEditingDoctor(null);
   }, []);
 
   const toggleForm = useCallback(() => {
@@ -176,7 +189,7 @@ const ManageDoctors = () => {
                   key={doctor.id}
                   doctor={doctor}
                   onViewProfile={handleViewProfile}
-                  onEdit={handleEditDoctor}
+                  onEditDoctor={handleEditDoctor}
                   onDelete={handleDeleteDoctor}
                   showActions
                 />
@@ -190,12 +203,22 @@ const ManageDoctors = () => {
         )}
       </div>
 
+      {/* Modais */}
       <DoctorDetailsModal
         doctor={selectedDoctor}
         onClose={handleCloseModal}
         onEdit={handleEditDoctor}
         onDelete={handleDeleteDoctor}
         showActions
+      />
+
+      <EditDoctorModal
+        doctor={editingDoctor}
+        isOpen={!!editingDoctor}
+        onClose={handleCloseEditModal}
+        onSave={handleSaveEditedDoctor}
+        specialties={FORM_SPECIALTIES}
+        locations={FORM_LOCATIONS}
       />
     </>
   );

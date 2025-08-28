@@ -11,6 +11,8 @@ import StatsSection from "../../components/shared/dashboard/StatsSection.jsx";
 import RecentActivitySection from "../../components/shared/dashboard/RecentActivitySection.jsx";
 import Appointments from "./Appointments";
 import SearchDoctors from "./SearchDoctors";
+import PatientNotifications from "./PatientNotifications";
+import ConsultationDetails from "./ConsultationDetails.jsx"; // Adicione esta linha
 import { NOTIFICATION_TYPES, mockData } from "../../data/index.js";
 
 const PatientDashboard = ({ userName, userData, onLogout }) => {
@@ -83,15 +85,25 @@ const PatientDashboard = ({ userName, userData, onLogout }) => {
 
         {/* Notifications */}
         <section>
-          <h3 className="text-xl font-bold text-gray-800 mb-4">Notificações</h3>
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-bold text-gray-800">Notificações</h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate("/patient/notifications")}
+            >
+              Ver todas
+            </Button>
+          </div>
           <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
             <div className="space-y-3">
-              {notifications.map((notification) => {
+              {notifications.slice(0, 3).map((notification) => {
                 const { bg, text } = getNotificationStyles(notification.type);
                 return (
                   <div
                     key={notification.id}
-                    className="hover:bg-gray-50 transition-colors rounded-lg p-3"
+                    className="hover:bg-gray-50 transition-colors rounded-lg p-3 cursor-pointer"
+                    onClick={() => navigate("/patient/notifications")}
                   >
                     <div className="flex items-start space-x-3">
                       <div className={`p-2 rounded-full ${bg}`}>
@@ -117,7 +129,7 @@ const PatientDashboard = ({ userName, userData, onLogout }) => {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="space-y-8">
       <Header
         userName={userName}
         userData={userData}
@@ -132,7 +144,12 @@ const PatientDashboard = ({ userName, userData, onLogout }) => {
             path="/appointments"
             element={<Appointments mockData={mockData} />}
           />
+          <Route
+            path="/appointments/details/:id"
+            element={<ConsultationDetails />}
+          />
           <Route path="/search" element={<SearchDoctors />} />
+          <Route path="/notifications" element={<PatientNotifications />} />
         </Routes>
       </main>
     </div>

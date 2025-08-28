@@ -1,0 +1,76 @@
+import { Star, MapPin, Clock, Edit } from "lucide-react";
+import Button from "./Button.jsx";
+
+const DoctorCard = ({ doctor, onViewProfile, onEditDoctor }) => {
+  const handleEditClick = () => {
+    if (onEditDoctor) {
+      onEditDoctor(doctor);
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow">
+      <div className="flex flex-col lg:flex-row gap-6">
+        <div className="flex items-start space-x-4 flex-1">
+          <img
+            src={doctor.image}
+            alt={doctor.name}
+            className="w-20 h-20 rounded-full object-cover"
+          />
+          <div className="flex-1">
+            <h3 className="text-xl font-semibold text-gray-900">{doctor.name}</h3>
+            <p className="text-blue-600 font-medium">{doctor.specialty}</p>
+            <div className="flex items-center space-x-4 mt-2 text-sm text-gray-600">
+              <div className="flex items-center space-x-1">
+                <Star className="text-yellow-400 fill-current" size={16} />
+                <span>
+                  {doctor.rating} ({doctor.reviews} avaliações)
+                </span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <MapPin className="text-gray-400" size={16} />
+                <span>{doctor.location}</span>
+              </div>
+            </div>
+            <p className="text-sm text-gray-600 mt-1">{doctor.hospital}</p>
+          </div>
+        </div>
+        <div className="flex flex-col lg:items-end justify-between space-y-3">
+          <div className="text-right">
+            <p className="text-2xl font-bold text-gray-900">{doctor.price}</p>
+            <p className="text-sm text-gray-600">por consulta</p>
+          </div>
+          <div className="text-right lg:text-left">
+            <div className="flex items-center space-x-1 text-sm text-gray-600 justify-end lg:justify-start">
+              <Clock size={16} className="text-blue-600" />
+              <span>Próximo horário:</span>
+            </div>
+            <p className="text-sm font-medium text-blue-600">
+              {doctor.nextAvailable}
+            </p>
+          </div>
+          <div className="flex space-x-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleEditClick}
+              className="!text-blue-600 hover:!bg-blue-50"
+            >
+              <Edit size={16} className="mr-1" />
+              Editar
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => onViewProfile(doctor)}
+            >
+              Ver Perfil
+            </Button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default DoctorCard;

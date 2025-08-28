@@ -15,7 +15,6 @@ const SignUp = ({ onSwitchToSignIn }) => {
     cpf: "",
     tipo: "PACIENTE",
   });
-
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
@@ -25,27 +24,31 @@ const SignUp = ({ onSwitchToSignIn }) => {
     }));
   };
 
+  // CORREÇÃO: Função para lidar com a navegação para login
+  const handleSwitchToSignIn = () => {
+    if (typeof onSwitchToSignIn === "function") {
+      onSwitchToSignIn();
+    } else {
+      // Fallback para navegação direta
+      window.location.href = "/signin";
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (formData.senha !== formData.confirmPassword) {
       toast.error("As senhas não coincidem");
       return;
     }
-
     if (!formData.nome || !formData.email || !formData.senha || !formData.cpf) {
       toast.error("Por favor, preencha todos os campos obrigatórios");
       return;
     }
-
     setLoading(true);
-
     try {
       const { confirmPassword, ...userData } = formData;
       await api.post("/auth/signup", userData);
-
       toast.success("Conta criada com sucesso! Redirecionando...");
-
       setFormData({
         nome: "",
         email: "",
@@ -56,8 +59,10 @@ const SignUp = ({ onSwitchToSignIn }) => {
         tipo: "PACIENTE",
       });
 
-      setTimeout(() => onSwitchToSignIn?.(), 2000);
+      // CORREÇÃO: Usar a função corrigida
+      setTimeout(() => handleSwitchToSignIn(), 2000);
     } catch (error) {
+      console.error("Erro no cadastro:", error); // Debug adicional
       toast.error(error.response?.data?.error || "Erro ao criar conta");
     } finally {
       setLoading(false);
@@ -75,8 +80,8 @@ const SignUp = ({ onSwitchToSignIn }) => {
           onChange={handleChange}
           placeholder="Seu nome completo"
           required
+          disabled={loading}
         />
-
         <InputField
           label="Email"
           type="email"
@@ -85,8 +90,8 @@ const SignUp = ({ onSwitchToSignIn }) => {
           onChange={handleChange}
           placeholder="seu@email.com"
           required
+          disabled={loading}
         />
-
         <InputField
           label="CPF"
           type="text"
@@ -95,8 +100,8 @@ const SignUp = ({ onSwitchToSignIn }) => {
           onChange={handleChange}
           placeholder="000.000.000-00"
           required
+          disabled={loading}
         />
-
         <InputField
           label="Telefone"
           type="tel"
@@ -104,8 +109,8 @@ const SignUp = ({ onSwitchToSignIn }) => {
           value={formData.telefone}
           onChange={handleChange}
           placeholder="(11) 99999-9999"
+          disabled={loading}
         />
-
         <InputField
           label="Senha"
           type="password"
@@ -114,8 +119,8 @@ const SignUp = ({ onSwitchToSignIn }) => {
           onChange={handleChange}
           placeholder="Sua senha"
           required
+          disabled={loading}
         />
-
         <InputField
           label="Confirmar Senha"
           type="password"
@@ -124,16 +129,23 @@ const SignUp = ({ onSwitchToSignIn }) => {
           onChange={handleChange}
           placeholder="Confirme sua senha"
           required
+          disabled={loading}
         />
-
         <Button type="submit" variant="primary" size="full" disabled={loading}>
           {loading ? "Criando conta..." : "Criar Conta"}
         </Button>
       </form>
 
+      {/* CORREÇÃO: Botão corrigido */}
       <p className="text-center mt-6 text-sm text-green-700">
         Já tem uma conta?{" "}
-        <Button variant="ghost" size="sm" onClick={onSwitchToSignIn}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleSwitchToSignIn}
+          disabled={loading}
+          type="button"
+        >
           Fazer login
         </Button>
       </p>

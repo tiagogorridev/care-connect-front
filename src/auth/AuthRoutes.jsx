@@ -11,10 +11,12 @@ import PatientDashboard from "../pages/patient/PatientDashboard";
 import PatientProfile from "../pages/patient/PatientProfile";
 import { useAuth } from "./AuthContext";
 import { USER_ROUTES } from "./AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const AuthRoutes = () => {
   const { isLoggedIn, userData, handleSignIn, handleLogout, currentUser } =
     useAuth();
+  const navigate = useNavigate();
 
   const userHome = userData?.userType
     ? USER_ROUTES[userData.userType]
@@ -27,36 +29,51 @@ const AuthRoutes = () => {
     onLogout: handleLogout,
   };
 
+  // CORREÇÃO: Funções de navegação consistentes
+  const handleSwitchToSignIn = () => {
+    navigate("/signin", { replace: true });
+  };
+
+  const handleSwitchToSignUp = () => {
+    navigate("/signup", { replace: true });
+  };
+
+  const handleForgotPassword = () => {
+    navigate("/forgot", { replace: true });
+  };
+
   // Componente para rotas públicas
   const PublicRoute = ({ children }) =>
     isLoggedIn ? <Navigate to={userHome} replace /> : children;
 
   return (
     <Routes>
-      {/* Rotas Públicas */}
+      {/* Rotas Públicas - CORRIGIDAS */}
       <Route
         path="/signin"
         element={
           <PublicRoute>
-            <SignIn onSignIn={handleSignIn} />
+            <SignIn
+              onSignIn={handleSignIn}
+              onSwitchToSignUp={handleSwitchToSignUp}
+              onForgotPassword={handleForgotPassword}
+            />
           </PublicRoute>
         }
       />
-
       <Route
         path="/signup"
         element={
           <PublicRoute>
-            <SignUp />
+            <SignUp onSwitchToSignIn={handleSwitchToSignIn} />
           </PublicRoute>
         }
       />
-
       <Route
         path="/forgot"
         element={
           <PublicRoute>
-            <ForgotPassword />
+            <ForgotPassword onSwitchToSignIn={handleSwitchToSignIn} />
           </PublicRoute>
         }
       />
@@ -70,7 +87,6 @@ const AuthRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/admin/*"
         element={
@@ -89,7 +105,6 @@ const AuthRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/clinic/*"
         element={
@@ -108,7 +123,6 @@ const AuthRoutes = () => {
           </ProtectedRoute>
         }
       />
-
       <Route
         path="/patient/*"
         element={
@@ -123,7 +137,6 @@ const AuthRoutes = () => {
         path="/"
         element={<Navigate to={isLoggedIn ? userHome : "/signin"} replace />}
       />
-
       <Route
         path="*"
         element={<Navigate to={isLoggedIn ? userHome : "/signin"} replace />}

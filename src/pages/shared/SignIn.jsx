@@ -75,14 +75,34 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
       };
 
       toast.success(`Bem-vindo, ${user.nome}!`);
-      onSignIn?.(user.nome, userDataForApp);
+
+      // Chama a função onSignIn se existir
+      if (onSignIn) {
+        onSignIn(user.nome, userDataForApp);
+      }
+
+      // Navega para a página apropriada baseada no tipo de usuário
+      const routeMap = {
+        admin: "/admin",
+        clinic: "/clinic",
+        patient: "/patient",
+      };
+
+      const targetRoute = routeMap[userType];
+      if (targetRoute) {
+        navigate(targetRoute, { replace: true });
+      }
     } catch (error) {
+      console.error("Erro no login:", error); // Debug
+
       if (error.response?.status === 401) {
         toast.error("Email ou senha incorretos");
       } else if (error.request) {
         toast.error("Erro de conexão. Verifique sua internet");
       } else {
-        toast.error("Erro ao fazer login");
+        toast.error(
+          `Erro ao fazer login: ${error.message || "Erro desconhecido"}`
+        );
       }
     } finally {
       setLoading(false);
@@ -98,11 +118,19 @@ const SignIn = ({ onSwitchToSignUp, onForgotPassword, onSignIn }) => {
       loginType: "google",
       loginTimestamp: new Date().toISOString(),
     };
-    onSignIn?.("Usuário Google", googleUserData);
+
+    if (onSignIn) {
+      onSignIn("Usuário Google", googleUserData);
+    }
+
+    navigate("/patient", { replace: true });
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === "Enter" && !loading) handleSubmit(e);
+    if (e.key === "Enter" && !loading) {
+      e.preventDefault();
+      handleSubmit(e);
+    }
   };
 
   return (

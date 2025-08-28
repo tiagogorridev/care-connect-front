@@ -1,11 +1,12 @@
 import { Bell, User, LogOut, Building, Shield } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../../../auth/AuthContext";
 
 const Header = ({ userName, notifications = [], onLogout }) => {
   const { userData } = useAuth();
   const userType = userData?.userType || userData?.tipo?.toLowerCase();
   const navigate = useNavigate();
+  const location = useLocation();
 
   console.log("userData:", userData);
   console.log("userType:", userType);
@@ -45,6 +46,20 @@ const Header = ({ userName, notifications = [], onLogout }) => {
     }
   };
 
+  // NOVA FUNÇÃO PARA O SININHO DE NOTIFICAÇÕES
+  const handleNotificationsClick = () => {
+    switch (userType) {
+      case "clinic":
+        navigate("/clinic/notifications");
+        break;
+      case "admin":
+        navigate("/admin/notifications");
+        break;
+      default:
+        navigate("/patient/notifications");
+    }
+  };
+
   const userConfig = {
     patient: {
       icon: (
@@ -77,6 +92,9 @@ const Header = ({ userName, notifications = [], onLogout }) => {
 
   const currentConfig = userConfig[userType] || userConfig.patient;
 
+  // SIMULAR NOTIFICAÇÕES NÃO LIDAS (você pode conectar com seus dados reais)
+  const unreadNotifications = 3;
+
   return (
     <header className="bg-white shadow-sm border-b">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -106,11 +124,24 @@ const Header = ({ userName, notifications = [], onLogout }) => {
           </div>
 
           <div className="flex items-center space-x-4">
-            <button className="relative p-2 text-gray-600 hover:text-red-600 transition-colors">
+            {/* BOTÃO DE NOTIFICAÇÕES ATUALIZADO */}
+            <button 
+              onClick={handleNotificationsClick}
+              className={`relative p-2 transition-colors rounded-full ${
+                location.pathname.includes('/notifications')
+                  ? userType === "clinic"
+                    ? 'bg-blue-100 text-blue-600'
+                    : userType === "admin"
+                    ? 'bg-purple-100 text-purple-600'
+                    : 'bg-green-100 text-green-600'
+                  : 'text-gray-600 hover:text-red-600 hover:bg-gray-100'
+              }`}
+              title="Notificações"
+            >
               <Bell size={20} />
-              {notifications.length > 0 && (
-                <span className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {notifications.length}
+              {unreadNotifications > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-medium">
+                  {unreadNotifications > 9 ? '9+' : unreadNotifications}
                 </span>
               )}
             </button>
